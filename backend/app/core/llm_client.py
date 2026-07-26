@@ -33,7 +33,7 @@ PERSONA_PROVIDER_MAP: Dict[str, str] = {
 
 # ─── Gemini Streaming ────────────────────────────────────────────────────────
 
-def prepare_gemini_messages(system_prompt: str, history: List[Dict[str, str]], user_message: str, temperature: float = 0.7):
+def prepare_gemini_messages(system_prompt: str, history: List[Dict[str, str]], user_message: str, temperature: float = 0.7, use_search: bool = False):
     """Formats system prompt, conversation history, and current query into Gemini contents."""
     contents = []
     
@@ -55,14 +55,16 @@ def prepare_gemini_messages(system_prompt: str, history: List[Dict[str, str]], u
         system_instruction=system_prompt,
         temperature=temperature,
     )
+    if use_search:
+        config.tools = [types.Tool(google_search=types.GoogleSearch())]
     return contents, config
 
-async def stream_gemini(system_prompt: str, history: List[Dict[str, str]], user_message: str, temperature: float = 0.7) -> AsyncGenerator[str, None]:
+async def stream_gemini(system_prompt: str, history: List[Dict[str, str]], user_message: str, temperature: float = 0.7, use_search: bool = False) -> AsyncGenerator[str, None]:
     """Streams responses from Gemini 2.5 Flash asynchronously."""
     if not gemini_client:
         raise ValueError("GEMINI_API_KEY is missing.")
         
-    contents, config = prepare_gemini_messages(system_prompt, history, user_message, temperature)
+    contents, config = prepare_gemini_messages(system_prompt, history, user_message, temperature, use_search)
     
     # Run sync streaming iterator in a thread executor to avoid blocking the asyncio event loop
     loop = asyncio.get_event_loop()
@@ -175,7 +177,8 @@ async def call_llm_stream(
                     return
                 elif primary == "gemini" and settings.GEMINI_API_KEY:
                     logger.info(f"[{persona_id}] Calling primary provider: Gemini")
-                    async for token in stream_gemini(system_prompt, history, user_message, temperature):
+                    use_search = persona_id == "research_assistant"
+                    async for token in stream_gemini(system_prompt, history, user_message, temperature, use_search=use_search):
                         partial_response += token
                         tokens_yielded += 1
                         yield token
