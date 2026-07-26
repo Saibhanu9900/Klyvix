@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["*"]
     
     # Model defaults
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "gemini-2.0-flash-lite"
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
     MISTRAL_MODEL: str = "codestral-latest"
     

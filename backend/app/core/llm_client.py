@@ -149,6 +149,8 @@ async def stream_groq(system_prompt: str, history: List[Dict[str, str]], user_me
 
 # ─── Unified LLM Router with Per-Persona Provider + Fallback ─────────────────
 
+import datetime
+
 async def call_llm_stream(
     system_prompt: str,
     history: List[Dict[str, str]],
@@ -156,6 +158,10 @@ async def call_llm_stream(
     persona_id: str = ""
 ) -> AsyncGenerator[str, None]:
     """Routes to the correct primary provider per persona, with Groq fallback."""
+    
+    # Inject current date so the model knows the present year
+    current_date = datetime.datetime.now().strftime("%B %d, %Y")
+    system_prompt += f"\n\n[SYSTEM NOTE: The current date is {current_date}. Always treat {current_date} as the present. Use your search tools for any current events or recent information.]"
     
     primary = PERSONA_PROVIDER_MAP.get(persona_id, "gemini")
     temperature = PERSONA_TEMPERATURES.get(persona_id, 0.7)
