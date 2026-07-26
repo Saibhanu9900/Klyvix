@@ -1,6 +1,6 @@
 # AI Command Center
 
-AI Command Center is a unified platform housing **five distinct, highly-specialized AI personas**, each engineered for specific academic and professional tasks. Rather than providing a single generic chatbot with different system prompts, each persona in this platform features tailored prompt designs, behavioral rules, structured output schemas, and specific data retrieval pipelines.
+AI Command Center is a unified platform housing **six distinct, highly-specialized AI personas**, each engineered for specific academic and professional tasks. Rather than providing a single generic chatbot with different system prompts, each persona in this platform features tailored prompt designs, behavioral rules, structured output schemas, and specific data retrieval pipelines.
 
 ## 🚀 The Problem It Solves
 
@@ -11,13 +11,14 @@ AI Command Center solves this by providing:
 2. **Reliability & Fallbacks:** A robust backend that intelligently routes between Gemini and Mistral based on the task, and automatically falls back to Groq if the primary provider hits a rate limit or goes down.
 3. **No Hallucinations on Docs:** A custom Document Analyzer that uses strict keyword-based chunk retrieval (no vector RAG) to ensure it only answers from the text provided.
 
-## 🤖 The 5 Personas
+## 🤖 The 6 Personas
 
 1. **Study Mentor:** Acts as a tutor. It breaks concepts down, checks your understanding, and re-explains if you're confused. It will *not* just dump the answer.
 2. **Code Reviewer:** Analyzes code and outputs structured JSON (rendered as neat UI sections) covering Bugs, Security Vulnerabilities, Performance, and Style/Best Practices, along with suggested fixes.
 3. **Code Colleague:** A pair-programming assistant that helps you write, debug, and architect software.
 4. **Document Analyzer:** Upload a PDF and ask questions. It strictly grounds its answers in the document using a custom text-chunking and keyword-scoring algorithm. If the answer isn't there, it explicitly says so.
 5. **Resume Reviewer:** Analyzes resumes and provides structured, actionable feedback (Strengths, Gaps, and concrete Before/After rewrite suggestions).
+6. **Research Assistant:** Synthesizes findings across multiple documents or text sources, flagging agreements and conflicts by theme rather than just summarizing source-by-source.
 
 ## 🛠️ Technology Stack & Languages
 
