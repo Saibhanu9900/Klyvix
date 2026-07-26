@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Command Center</title>
+    <meta name="description" content="Unified platform housing 6 specialized AI personas with dual LLM streaming intelligence.">
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" id="hljs-theme" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/tokyo-night-dark.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">[>_]</div>
+                <span class="brand-name">AI Command Center</span>
+            </div>
+
+            <nav class="sidebar-nav" id="sidebarNav">
+                <div class="nav-section-title">PERSONAS</div>
+                <button class="sidebar-item active" data-persona="dashboard">
+                    <span class="sidebar-icon">~</span> dashboard
+                </button>
+                <button class="sidebar-item" data-persona="study_mentor">
+                    <span class="sidebar-icon">></span> study_mentor
+                </button>
+                <button class="sidebar-item" data-persona="code_reviewer">
+                    <span class="sidebar-icon">></span> code_reviewer
+                </button>
+                <button class="sidebar-item" data-persona="code_colleague">
+                    <span class="sidebar-icon">></span> code_colleague
+                </button>
+                <button class="sidebar-item" data-persona="document_analyzer">
+                    <span class="sidebar-icon">></span> document_analyzer
+                </button>
+                <button class="sidebar-item" data-persona="resume_reviewer">
+                    <span class="sidebar-icon">></span> resume_reviewer
+                </button>
+                <button class="sidebar-item" data-persona="research_assistant">
+                    <span class="sidebar-icon">></span> research_assistant
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="themeToggleBtn" class="sidebar-action-btn" title="Toggle Theme">
+                    <span class="sidebar-icon">[*]</span>
+                    <span id="themeLabel">theme: dark</span>
+                </button>
+                <button id="clearSessionBtn" class="sidebar-action-btn" title="Clear current chat memory">
+                    <span class="sidebar-icon">[x]</span>
+                    <span>clear_memory</span>
+                </button>
+                <button id="exportChatBtn" class="sidebar-action-btn" title="Export chat as Markdown">
+                    <span class="sidebar-icon">[↓]</span>
+                    <span>export</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="main-content">
+            <!-- 1. DASHBOARD HOME VIEW (Persona Cards Grid) -->
+            <section id="dashboardView" class="view-section active">
+                <div class="persona-grid" id="personaGrid">
+                    <!-- Cards populated dynamically via JS -->
+                </div>
+            </section>
+
+            <!-- 2. ACTIVE PERSONA WORKSPACE VIEW -->
+            <section id="workspaceView" class="view-section">
+
+                <!-- Output Canvas Container (Freeform Chat vs Structured Cards) -->
+                <div class="canvas-container">
+                    <!-- Empty State Welcome View -->
+                    <div id="emptyStateView" class="empty-state-view">
+                        <div class="empty-state-icon" id="emptyStateIcon"></div>
+                        <h2 class="empty-state-title" id="emptyStateTitle"></h2>
+                        <p class="empty-state-desc" id="emptyStateDesc"></p>
+                        <div class="quick-actions" id="quickActions"></div>
+                    </div>
+
+                    <!-- Freeform Chat Stream Container -->
+                    <div id="chatStream" class="chat-stream hidden"></div>
+
+                    <!-- Structured Output Container (Code Reviewer & Resume Reviewer) -->
+                    <div id="structuredCanvas" class="structured-canvas hidden">
+                        <div id="structuredResults" class="structured-results"></div>
+                    </div>
+                </div>
+
+                <!-- Bottom Input Control Bar -->
+                <div class="input-control-bar">
+                    <!-- Attached File Info Pill (Compact) -->
+                    <div id="attachedFileCard" class="attached-file-card hidden">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span class="file-name" id="fileName">document.pdf</span>
+                        <span class="file-stats" id="fileStats">0 words</span>
+                        <button id="removeFileBtn" class="btn-icon-danger" title="Remove file">&times;</button>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <!-- Hidden file input (kept for functionality) -->
+                        <label for="fileInput" id="uploadZone" class="upload-btn-icon hidden" title="Attach PDF Document">
+                            <span class="sidebar-icon">[+]</span>
+                            <input type="file" id="fileInput" class="file-input-hidden" multiple>
+                        </label>
+
+                        <span class="input-prompt-icon">$</span>
+                        <textarea id="userInput" class="user-input-textarea" rows="1" placeholder="type your command here..."></textarea>
+                        
+                        <div class="input-footer">
+                            <span id="wordCountDisplay">0 words | 0 chars</span>
+                        </div>
+
+                        <button id="sendBtn" class="send-btn" title="Send">⏎</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+    
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/components/chat.js"></script>
+    <script src="/static/js/components/structured.js"></script>
+    <script src="/static/js/components/upload.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
