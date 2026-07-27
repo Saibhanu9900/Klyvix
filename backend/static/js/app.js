@@ -1,5 +1,5 @@
 /**
- * Main Application Logic for AI Command Center
+ * Main Application Logic for HexaMind
  */
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,4 +1,4 @@
-# Architecture — AI Command Center
+# Architecture — HexaMind
 
 ## 1. Architecture Overview
 

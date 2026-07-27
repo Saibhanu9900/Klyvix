@@ -48,7 +48,7 @@ story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#256
 # Section 1
 story.append(Paragraph("1. Executive Summary", h2_style))
 story.append(Paragraph(
-    "Quantum Dynamics Inc. has successfully completed Phase 2 of the AI Command Center platform integration. "
+    "Quantum Dynamics Inc. has successfully completed Phase 2 of the HexaMind platform integration. "
     "Overall system performance increased by 42% following the deployment of multi-provider routing (Gemini 2.5 Flash, "
     "Groq Llama 3.3, and Mistral Codestral). The total target revenue for Q3 2026 was projected at $4.5 Million, with an "
     "actual achieved revenue of $4.85 Million (an 8% overperformance).", body_style))

@@ -1,4 +1,4 @@
-# 🎯 AI Command Center
+# 🎯 HexaMind
 
 > A **unified, high-performance platform** housing **6 specialized AI personas**, each engineered for specific academic and professional workflows. Powered by intelligent multi-LLM routing with real-time streaming.
 
@@ -12,7 +12,7 @@ Generic AI chatbots fail when tasked with specialized workflows:
 - ❌ They output unformatted walls of text
 - ❌ They lack domain-specific expertise
 
-**AI Command Center** fixes this by providing:
+**HexaMind** fixes this by providing:
 
 | Challenge | Solution |
 |-----------|----------|
@@ -259,14 +259,14 @@ If the primary provider fails:
 
 ```bash
 # Build image
-docker build -t ai-command-center .
+docker build -t hexamind .
 
 # Run container
 docker run -p 8080:8080 \
   -e GEMINI_API_KEY=your_key \
   -e MISTRAL_API_KEY=your_key \
   -e GROQ_API_KEY=your_key \
-  ai-command-center
+  hexamind
 ```
 
 ### Environment Variables

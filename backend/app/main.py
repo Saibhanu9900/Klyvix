@@ -8,7 +8,7 @@ from app.routers import chat, upload
 from app.personas.registry import PERSONA_REGISTRY
 
 app = FastAPI(
-    title="AI Command Center API",
+    title="HexaMind API",
     version="1.0.0",
     description="Unified API powering 6 specialized AI personas with dual LLM streaming."
 )
@@ -28,7 +28,7 @@ app.include_router(upload.router)
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "service": "AI Command Center Backend"}
+    return {"status": "ok", "service": "HexaMind Backend"}
 
 @app.get("/api/personas")
 def list_personas():
@@ -54,7 +54,7 @@ def serve_index():
     index_path = os.path.join(static_dir, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    return {"message": "AI Command Center Backend is running. Frontend static files not yet deployed."}
+    return {"message": "HexaMind Backend is running. Frontend static files not yet deployed."}
 
 if __name__ == "__main__":
     import uvicorn

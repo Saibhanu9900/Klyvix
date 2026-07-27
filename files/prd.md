@@ -1,4 +1,4 @@
-# PRD — AI Command Center
+# PRD — HexaMind
 
 **Project**: Vibe Coding Final Project — Gen AI & Cloud Computing
 **Team size**: 6 · **Timeline**: 5 days
@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-AI Command Center is a single platform housing five distinct AI-powered personas, each engineered for a specific academic/professional task. Instead of one generic chatbot reused with different names, each persona has its own prompt design, behavior rules, and output structure — the engineering differs meaningfully persona-to-persona.
+HexaMind is a single platform housing five distinct AI-powered personas, each engineered for a specific academic/professional task. Instead of one generic chatbot reused with different names, each persona has its own prompt design, behavior rules, and output structure — the engineering differs meaningfully persona-to-persona.
 
 ## 2. Goals
 

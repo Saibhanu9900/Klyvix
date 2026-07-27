@@ -1,4 +1,4 @@
-# AI Command Center — Project Rules & Guidelines (`rules.md`)
+# HexaMind — Project Rules & Guidelines (`rules.md`)
 
 ## 1. System & Architecture Rules
 

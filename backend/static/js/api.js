@@ -1,5 +1,5 @@
 /**
- * API Communication Layer for AI Command Center
+ * API Communication Layer for HexaMind
  */
 
 const API = {

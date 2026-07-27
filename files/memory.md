@@ -1,8 +1,8 @@
-# AI Command Center — Memory & Context Architecture (`memory.md`)
+# HexaMind — Memory & Context Architecture (`memory.md`)
 
 ## 1. Overview & Strategy
 
-The AI Command Center utilizes a hybrid **Session-Based Ephemeral Memory** design. To keep performance fast, costs low, and latency low within our 5-day build, context is held in memory per session and bounded using sliding token windows.
+The HexaMind utilizes a hybrid **Session-Based Ephemeral Memory** design. To keep performance fast, costs low, and latency low within our 5-day build, context is held in memory per session and bounded using sliding token windows.
 
 ---
 
