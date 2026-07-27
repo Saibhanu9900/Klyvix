@@ -151,6 +151,13 @@ body {
     border: none;
 }
 
+.brand-logo-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
 .brand-name {
     font-weight: 700;
     font-size: 1rem;
