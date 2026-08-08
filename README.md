@@ -132,7 +132,7 @@ Web-powered research analyst with Google Search grounding:
 
     ┌──────────┐  ┌─────────┐  ┌───────┐
     │PostgreSQL│  │ Qdrant  │  │ Redis │
-    │(Supabase)│  │ (Cloud) │  │(Upstash)│
+    │(Neon)│  │ (Cloud) │  │(Upstash)│
     └──────────┘  └─────────┘  └───────┘
       • Users           • Document       • Rate limiting
       • Documents         embeddings     • LLM response
@@ -150,7 +150,7 @@ Web-powered research analyst with Google Search grounding:
 | **Frontend** | Vanilla JS (ES6+), Marked.js, Highlight.js, KaTeX |
 | **LLM Providers** | Google Gemini 2.0 Flash, Mistral Codestral, Groq Llama 3.3 70B |
 | **Vector Store** | Qdrant Cloud (768-dim Gemini embeddings, cosine similarity) |
-| **Database** | PostgreSQL (Supabase) — users, documents, chat sessions |
+| **Database** | PostgreSQL (Neon) — users, documents, chat sessions |
 | **Cache** | Redis (Upstash) — rate limiting, LLM response caching |
 | **Auth** | JWT tokens, bcrypt password hashing (passlib) |
 | **Deployment** | Render (render.yaml), Docker |
@@ -170,7 +170,7 @@ Web-powered research analyst with Google Search grounding:
 ### Prerequisites
 - Python 3.10+
 - Git
-- PostgreSQL (or a [Supabase](https://supabase.com) free tier account)
+- PostgreSQL (or a [Neon](https://neon.tech) free tier account)
 - Qdrant (or a [Qdrant Cloud](https://cloud.qdrant.io) free tier account)
 - Redis (or an [Upstash](https://upstash.com) free tier account)
 
@@ -211,7 +211,7 @@ MISTRAL_API_KEY=your_key_here        # Get from Mistral AI
 GROQ_API_KEY=your_key_here           # Get from Groq Console
 
 # Database & Infrastructure
-DATABASE_URL=postgresql://...        # Supabase connection string
+DATABASE_URL=postgresql://...        # Neon connection string
 QDRANT_URL=https://...               # Qdrant Cloud cluster URL
 QDRANT_API_KEY=your_key_here         # Qdrant API key
 REDIS_URL=redis://...                # Upstash Redis URL
@@ -224,7 +224,7 @@ JWT_SECRET_KEY=your_secret_here      # Generate: python -c "import secrets; prin
 - ⚡ [Groq](https://console.groq.com)
 
 **Get Infrastructure:**
-- 🐘 [Supabase](https://supabase.com) — Free PostgreSQL
+- 🐘 [Neon](https://neon.tech) — Free PostgreSQL
 - 🔷 [Qdrant Cloud](https://cloud.qdrant.io) — Free vector DB (1GB)
 - 🔴 [Upstash](https://upstash.com) — Free Redis
 
@@ -322,7 +322,7 @@ docker run -p 8080:8080 \
 | `GEMINI_API_KEY` | Yes | Google AI Studio |
 | `MISTRAL_API_KEY` | Yes | Mistral AI Console |
 | `GROQ_API_KEY` | Yes | Groq Console |
-| `DATABASE_URL` | Yes | Supabase / PostgreSQL |
+| `DATABASE_URL` | Yes | Neon / PostgreSQL |
 | `QDRANT_URL` | Yes | Qdrant Cloud |
 | `QDRANT_API_KEY` | Yes | Qdrant Cloud |
 | `REDIS_URL` | Yes | Upstash / Redis |
@@ -411,7 +411,7 @@ All styling in `/backend/static/css/styles.css`:
 | **PDF upload fails** | Check file size (10MB limit), ensure PDF is not corrupted |
 | **Streaming stops mid-response** | Check browser console for errors, verify API key quotas |
 | **CORS errors** | Ensure `CORS_ORIGINS` in `.env` includes your frontend URL |
-| **Database errors** | Ensure `DATABASE_URL` is set and Supabase is reachable |
+| **Database errors** | Ensure `DATABASE_URL` is set and Neon is reachable |
 | **Rate limiting errors** | Ensure `REDIS_URL` is set and Upstash is reachable |
 
 ---
