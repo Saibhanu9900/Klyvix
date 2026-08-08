@@ -1,5 +1,5 @@
 /**
- * Main Application Logic for HexaMind
+ * Main Application Logic for Klyvix
  */
 
 document.addEventListener('DOMContentLoaded', () => {

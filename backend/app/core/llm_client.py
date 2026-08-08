@@ -150,6 +150,19 @@ async def stream_groq(system_prompt: str, history: List[Dict[str, str]], user_me
 # ─── Unified LLM Router with Per-Persona Provider + Fallback ─────────────────
 
 import datetime
+import hashlib
+import json
+from app.core.cache import cache
+
+def generate_cache_key(system_prompt: str, history: List[Dict[str, str]], user_message: str, persona_id: str) -> str:
+    """Generates a unique cache key based on the prompt inputs."""
+    data = json.dumps({
+        "system": system_prompt,
+        "history": history,
+        "user": user_message,
+        "persona": persona_id
+    }, sort_keys=True)
+    return f"llm_cache:{hashlib.sha256(data.encode()).hexdigest()}"
 
 async def call_llm_stream(
     system_prompt: str,
@@ -157,7 +170,20 @@ async def call_llm_stream(
     user_message: str,
     persona_id: str = ""
 ) -> AsyncGenerator[str, None]:
-    """Routes to the correct primary provider per persona, with Groq fallback."""
+    """Routes to the correct primary provider per persona, with Groq fallback and Redis caching."""
+    
+    # Check cache first
+    cache_key = generate_cache_key(system_prompt, history, user_message, persona_id)
+    cached_response = await cache.get(cache_key)
+    
+    if cached_response:
+        logger.info(f"[{persona_id}] Cache hit! Returning cached response.")
+        # Yield in chunks to simulate streaming
+        chunk_size = 50
+        for i in range(0, len(cached_response), chunk_size):
+            yield cached_response[i:i+chunk_size]
+            await asyncio.sleep(0.01)
+        return
     
     # Inject current date so the model knows the present year
     current_date = datetime.datetime.now().strftime("%B %d, %Y")
@@ -180,6 +206,7 @@ async def call_llm_stream(
                         partial_response += token
                         tokens_yielded += 1
                         yield token
+                    await cache.set(cache_key, partial_response, expire_seconds=86400)
                     return
                 elif primary == "gemini" and settings.GEMINI_API_KEY:
                     logger.info(f"[{persona_id}] Calling primary provider: Gemini")
@@ -188,6 +215,7 @@ async def call_llm_stream(
                         partial_response += token
                         tokens_yielded += 1
                         yield token
+                    await cache.set(cache_key, partial_response, expire_seconds=86400)
                     return
                 else:
                     raise ValueError(f"Primary provider '{primary}' key is not configured.")
@@ -221,7 +249,9 @@ async def call_llm_stream(
             
         try:
             async for token in stream_groq(system_prompt, fallback_history, fallback_user_message, temperature):
+                partial_response += token
                 yield token
+            await cache.set(cache_key, partial_response, expire_seconds=86400)
             return
         except Exception as e:
             logger.error(f"[{persona_id}] Groq fallback also failed: {e}")

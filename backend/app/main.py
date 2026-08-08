@@ -4,14 +4,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
-from app.routers import chat, upload
+from app.core.logger import logger
+from app.routers import chat, upload, auth
 from app.personas.registry import PERSONA_REGISTRY
 
 app = FastAPI(
-    title="HexaMind API",
+    title="Klyvix API",
     version="1.0.0",
     description="Unified API powering 6 specialized AI personas with dual LLM streaming."
 )
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("application_started", version=app.version, host=settings.HOST, port=settings.PORT)
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    logger.info("application_stopped")
 
 # CORS setup
 app.add_middleware(
@@ -23,12 +32,13 @@ app.add_middleware(
 )
 
 # Mount Routers
+app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(upload.router)
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "service": "HexaMind Backend"}
+    return {"status": "ok", "service": "Klyvix Backend"}
 
 @app.get("/api/personas")
 def list_personas():
@@ -54,7 +64,7 @@ def serve_index():
     index_path = os.path.join(static_dir, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    return {"message": "HexaMind Backend is running. Frontend static files not yet deployed."}
+    return {"message": "Klyvix Backend is running. Frontend static files not yet deployed."}
 
 if __name__ == "__main__":
     import uvicorn

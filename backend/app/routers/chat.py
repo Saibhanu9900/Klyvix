@@ -4,9 +4,10 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from app.core.rate_limit import rate_limiter
+from app.core.auth import verify_token
 from app.models.schemas import ChatRequest
 from app.personas.registry import get_persona
-from app.core.retrieval import get_top_k_chunks, document_store
+from app.core.retrieval import get_top_k_chunks
 from app.core.llm_client import call_llm_stream
 
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -23,7 +24,7 @@ async def sse_event_generator(system_prompt: str, history: list, user_message: s
         error_data = json.dumps({"error": str(e)})
         yield f"data: {error_data}\n\n"
 
-@router.post("/chat/{persona_id}", dependencies=[Depends(rate_limiter)])
+@router.post("/chat/{persona_id}", dependencies=[Depends(verify_token), Depends(rate_limiter)])
 async def chat_persona(persona_id: str, request: ChatRequest, req: Request):
     """Streaming chat endpoint for all 6 personas."""
     persona = get_persona(persona_id)

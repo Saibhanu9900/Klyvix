@@ -1,8 +1,31 @@
 /**
- * API Communication Layer for HexaMind
+ * API Communication Layer for Klyvix
  */
 
 const API = {
+    /**
+     * Gets or creates a JWT token for the session
+     */
+    async getToken() {
+        let token = localStorage.getItem('jwt_token');
+        if (token) return token;
+        
+        // Auto-register a temporary user for testing Phase 1
+        const email = `test_${Math.random().toString(36).substring(7)}@example.com`;
+        const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: 'testpassword' })
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem('jwt_token', data.access_token);
+            return data.access_token;
+        }
+        return null;
+    },
+
     /**
      * Fetches persona list from backend
      */
@@ -16,6 +39,7 @@ const API = {
      * Uploads PDF document to backend
      */
     async uploadDocuments(files) {
+        const token = await this.getToken();
         const formData = new FormData();
         for (let i = 0; i < files.length; i++) {
             formData.append('files', files[i]);
@@ -23,6 +47,9 @@ const API = {
 
         const res = await fetch('/api/upload', {
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             body: formData
         });
 
@@ -38,10 +65,12 @@ const API = {
      */
     async streamChat(personaId, payload, onChunk, onError, onComplete) {
         try {
+            const token = await this.getToken();
             const res = await fetch(`/api/chat/${personaId}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(payload)
             });

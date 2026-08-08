@@ -1,7 +1,7 @@
-# 🎯 HexaMind
+# 🎯 Klyvix
 
 <p align="center">
-  <img src="logo.png" alt="HexaMind Logo" width="200">
+  <img src="logo.png" alt="Klyvix Logo" width="200">
 </p>
 
 > A **unified, high-performance platform** housing **6 specialized AI personas**, each engineered for specific academic and professional workflows. Powered by intelligent multi-LLM routing with real-time streaming.
@@ -16,7 +16,7 @@ Generic AI chatbots fail when tasked with specialized workflows:
 - ❌ They output unformatted walls of text
 - ❌ They lack domain-specific expertise
 
-**HexaMind** fixes this by providing:
+**Klyvix** fixes this by providing:
 
 | Challenge | Solution |
 |-----------|----------|
@@ -263,14 +263,14 @@ If the primary provider fails:
 
 ```bash
 # Build image
-docker build -t hexamind .
+docker build -t klyvix .
 
 # Run container
 docker run -p 8080:8080 \
   -e GEMINI_API_KEY=your_key \
   -e MISTRAL_API_KEY=your_key \
   -e GROQ_API_KEY=your_key \
-  hexamind
+  klyvix
 ```
 
 ### Environment Variables
