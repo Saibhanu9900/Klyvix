@@ -500,7 +500,7 @@ PERSONA_REGISTRY: Dict[str, PersonaConfig] = {
         description="Socratic tutor that checks understanding through interactive dialogue.",
         system_prompt=STUDY_MENTOR_PROMPT,
         output_mode="freeform",
-        requires_upload=True
+        requires_upload=False
     ),
     "code_reviewer": PersonaConfig(
         id="code_reviewer",
@@ -508,7 +508,7 @@ PERSONA_REGISTRY: Dict[str, PersonaConfig] = {
         description="Systematic code audit across Bugs, Security, Performance, and Style.",
         system_prompt=CODE_REVIEWER_PROMPT,
         output_mode="json_schema",
-        requires_upload=True,
+        requires_upload=False,
         json_schema=CodeReviewResponse.model_json_schema()
     ),
     "document_analyzer": PersonaConfig(
@@ -542,7 +542,7 @@ PERSONA_REGISTRY: Dict[str, PersonaConfig] = {
         description="Collaborative pair-programming partner for code generation, refactoring, and architecture.",
         system_prompt=CODE_COLLEAGUE_PROMPT,
         output_mode="freeform",
-        requires_upload=True
+        requires_upload=False
     )
 }
 

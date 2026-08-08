@@ -21,7 +21,7 @@ Generic AI chatbots fail when tasked with specialized workflows:
 | Challenge | Solution |
 |-----------|----------|
 | **Generic AI responses** | 6 purpose-built personas, each fine-tuned for specific workflows |
-| **Document hallucinations** | Custom keyword-based chunk retrieval (no vector RAG) — answers strictly grounded in your documents |
+| **Document hallucinations** | Semantic vector retrieval via Qdrant + Gemini embeddings — answers strictly grounded in your documents |
 | **Rate limits & outages** | Intelligent LLM fallback engine — routes between Gemini, Mistral, and Groq seamlessly |
 | **Unstructured outputs** | Structured JSON for code reviews & resume feedback + formatted markdown for interactive learning |
 | **Slow interactions** | Real-time Server-Sent Events (SSE) streaming with terminal-style UI |
@@ -66,7 +66,7 @@ A collaborative pair-programming partner:
 
 ### 4. **📄 Document Analyzer**
 Upload a PDF and ask anything. Guaranteed ground-truth answers:
-- Extracts answers **strictly from your document** using keyword-based retrieval
+- Extracts answers **strictly from your document** using semantic vector retrieval (Qdrant + Gemini embeddings)
 - Cites exact sections/chunks
 - Refuses to guess or hallucinate
 - Handles multi-document context
@@ -88,8 +88,9 @@ Outputs structured feedback as beautiful cards.
 ---
 
 ### 6. **🔬 Research Assistant**
-Multi-source synthesizer with explicit agreement/conflict flagging:
-- Weaves findings across multiple documents into a coherent narrative
+Web-powered research analyst with Google Search grounding:
+- Actively searches the web for current, real-time information
+- Cites sources with links
 - Flags where sources agree vs. conflict
 - Organizes by theme (not source-by-source)
 - Identifies gaps and limitations
@@ -114,21 +115,29 @@ Multi-source synthesizer with explicit agreement/conflict flagging:
 │              FastAPI Backend (Python)                        │
 │  • Persona Registry: 6 specialized system prompts             │
 │  • Multi-LLM Router: Routes to Gemini, Mistral, or Groq      │
-│  • Document Processing: PDF parsing + keyword chunking       │
-│  • Rate Limiting & Session Management                        │
-│  • Real-time streaming via async generators                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        ▼              ▼              ▼
-    ┌────────┐    ┌────────┐    ┌──────┐
-    │ Gemini │    │Mistral │    │ Groq │
-    │(Primary)    │(Code)   │    │(FallBack)
-    └────────┘    └────────┘    └──────┘
+│  • Document Processing: PDF parsing + semantic chunking      │
+│  • Vector Retrieval: Qdrant with Gemini embeddings (768-dim) │
+│  • Auth: JWT tokens with bcrypt password hashing             │
+│  • Redis: Rate limiting + LLM response caching              │
+└──────────┬───────────┬───────────┬──────────────────────────┘
+           │           │           │
+    ┌──────┴──┐  ┌─────┴────┐  ┌──┴─────┐
+    │ Gemini  │  │ Mistral  │  │  Groq  │
+    │(Primary)│  │ (Code)   │  │(Fallback)│
+    └─────────┘  └──────────┘  └────────┘
       • Study Mentor      • Code Reviewer
       • Doc Analyzer      • Code Colleague
       • Resume Reviewer
       • Research Assistant
+
+    ┌──────────┐  ┌─────────┐  ┌───────┐
+    │PostgreSQL│  │ Qdrant  │  │ Redis │
+    │(Supabase)│  │ (Cloud) │  │(Upstash)│
+    └──────────┘  └─────────┘  └───────┘
+      • Users           • Document       • Rate limiting
+      • Documents         embeddings     • LLM response
+      • Chat sessions   • 768-dim          caching
+                          vectors
 ```
 
 ---
@@ -136,12 +145,15 @@ Multi-source synthesizer with explicit agreement/conflict flagging:
 ## ⚡ Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|-------|-----------:|
 | **Backend** | Python 3.12, FastAPI, Uvicorn, Pydantic |
 | **Frontend** | Vanilla JS (ES6+), Marked.js, Highlight.js, KaTeX |
-| **LLM Providers** | Google Gemini 2.5 Flash, Mistral Codestral, Groq Llama 3.3 70B |
-| **Document Processing** | PyPDF, keyword-based chunking (no vector DBs) |
-| **Deployment** | Docker, supports local development & cloud deployment |
+| **LLM Providers** | Google Gemini 2.0 Flash, Mistral Codestral, Groq Llama 3.3 70B |
+| **Vector Store** | Qdrant Cloud (768-dim Gemini embeddings, cosine similarity) |
+| **Database** | PostgreSQL (Supabase) — users, documents, chat sessions |
+| **Cache** | Redis (Upstash) — rate limiting, LLM response caching |
+| **Auth** | JWT tokens, bcrypt password hashing (passlib) |
+| **Deployment** | Render (render.yaml), Docker |
 | **Streaming** | Server-Sent Events (SSE) for real-time responses |
 
 **Language Breakdown:**
@@ -153,17 +165,20 @@ Multi-source synthesizer with explicit agreement/conflict flagging:
 
 ---
 
-## 📖 Quick Start (5 Minutes)
+## 📖 Quick Start
 
 ### Prerequisites
 - Python 3.10+
 - Git
+- PostgreSQL (or a [Supabase](https://supabase.com) free tier account)
+- Qdrant (or a [Qdrant Cloud](https://cloud.qdrant.io) free tier account)
+- Redis (or an [Upstash](https://upstash.com) free tier account)
 
 ### 1️⃣ Clone & Setup
 
 ```bash
-git clone https://github.com/Ysaibhanu99/AI_COMMAND_CENTER.git
-cd AI_COMMAND_CENTER/backend
+git clone https://github.com/Ysaibhanu99/Klyvix.git
+cd Klyvix/backend
 
 # Create virtual environment
 python -m venv venv
@@ -181,23 +196,37 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3️⃣ Configure API Keys
+### 3️⃣ Configure Environment
 
 ```bash
 cp .env.example .env
 ```
 
-Open `.env` and add your API keys:
+Open `.env` and fill in **all** required values:
+
 ```env
+# API Keys
 GEMINI_API_KEY=your_key_here         # Get from Google AI Studio
 MISTRAL_API_KEY=your_key_here        # Get from Mistral AI
 GROQ_API_KEY=your_key_here           # Get from Groq Console
+
+# Database & Infrastructure
+DATABASE_URL=postgresql://...        # Supabase connection string
+QDRANT_URL=https://...               # Qdrant Cloud cluster URL
+QDRANT_API_KEY=your_key_here         # Qdrant API key
+REDIS_URL=redis://...                # Upstash Redis URL
+JWT_SECRET_KEY=your_secret_here      # Generate: python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 **Get API Keys:**
 - 🔵 [Google Gemini](https://aistudio.google.com/app/apikey)
 - 🟦 [Mistral AI](https://console.mistral.ai/api-keys/)
 - ⚡ [Groq](https://console.groq.com)
+
+**Get Infrastructure:**
+- 🐘 [Supabase](https://supabase.com) — Free PostgreSQL
+- 🔷 [Qdrant Cloud](https://cloud.qdrant.io) — Free vector DB (1GB)
+- 🔴 [Upstash](https://upstash.com) — Free Redis
 
 ### 4️⃣ Run Server
 
@@ -218,15 +247,15 @@ Navigate to: **[http://localhost:8080](http://localhost:8080)**
 ### Dashboard
 Click any **persona card** to enter that workspace
 
-### Chat Personas (Study Mentor, Code Colleague)
+### Chat Personas (Study Mentor, Code Colleague, Research Assistant)
 1. Type your query in the terminal input at the bottom
 2. Watch real-time streaming responses
 3. Maintain conversation history automatically
 
-### Document Personas (Analyzer, Reviewer, Research Assistant)
+### Document Personas (Analyzer, Resume Reviewer)
 1. **Drag-and-drop** a PDF into the upload zone, OR
 2. Click the **[+]** icon to select files
-3. Ask your questions — answers are grounded in the document
+3. Ask your questions — answers are grounded in the document via semantic vector retrieval
 
 ### Structured Output (Code Reviewer, Resume Reviewer)
 Responses render as beautiful multi-section cards with:
@@ -243,7 +272,7 @@ Responses render as beautiful multi-section cards with:
 
 1. **Frontend** sends a message to `/api/chat/{persona_id}` with streaming enabled
 2. **Persona Lookup** retrieves the specialized system prompt and configuration
-3. **Document Retrieval** (if needed) — extracts relevant chunks from uploaded PDFs
+3. **Document Retrieval** (if needed) — semantic vector search finds relevant chunks from uploaded PDFs via Qdrant
 4. **LLM Routing** — selects primary provider (Gemini for study/docs, Mistral for code, Groq as fallback)
 5. **Streaming** — backend streams tokens in real-time via SSE
 6. **Frontend** renders tokens as they arrive, handling markdown/JSON/KaTeX formatting
@@ -255,9 +284,17 @@ If the primary provider fails:
 - 🔄 **Groq fallback activates** → Continues the stream seamlessly
 - 📝 **Partial responses** → If tokens were already sent, instructs fallback to continue naturally
 
+### Caching
+- LLM responses are cached in Redis (24hr TTL) keyed by SHA-256 hash of the prompt inputs
+- Duplicate uploads are detected by file hash and return cached metadata instantly
+
 ---
 
 ## 📦 Deployment
+
+### Render (Recommended)
+
+The `render.yaml` in the project root configures a Render web service. Add your environment variables in the Render dashboard and connect your GitHub repo.
 
 ### Docker
 
@@ -270,6 +307,11 @@ docker run -p 8080:8080 \
   -e GEMINI_API_KEY=your_key \
   -e MISTRAL_API_KEY=your_key \
   -e GROQ_API_KEY=your_key \
+  -e DATABASE_URL=your_db_url \
+  -e QDRANT_URL=your_qdrant_url \
+  -e QDRANT_API_KEY=your_qdrant_key \
+  -e REDIS_URL=your_redis_url \
+  -e JWT_SECRET_KEY=your_secret \
   klyvix
 ```
 
@@ -280,6 +322,11 @@ docker run -p 8080:8080 \
 | `GEMINI_API_KEY` | Yes | Google AI Studio |
 | `MISTRAL_API_KEY` | Yes | Mistral AI Console |
 | `GROQ_API_KEY` | Yes | Groq Console |
+| `DATABASE_URL` | Yes | Supabase / PostgreSQL |
+| `QDRANT_URL` | Yes | Qdrant Cloud |
+| `QDRANT_API_KEY` | Yes | Qdrant Cloud |
+| `REDIS_URL` | Yes | Upstash / Redis |
+| `JWT_SECRET_KEY` | Yes | Self-generated (see .env.example) |
 | `HOST` | No | Default: `0.0.0.0` |
 | `PORT` | No | Default: `8080` |
 | `CORS_ORIGINS` | No | Default: `["*"]` |
@@ -289,36 +336,41 @@ docker run -p 8080:8080 \
 ## 📂 Project Structure
 
 ```
-AI_COMMAND_CENTER/
+Klyvix/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                 # FastAPI app entry point
+│   │   ├── main.py                 # FastAPI app entry point (lifespan handler)
 │   │   ├── core/
-│   │   │   ├── llm_client.py       # Multi-LLM routing + streaming
-│   │   │   ├── retrieval.py        # PDF parsing & keyword chunking
-│   │   │   ├── config.py           # Settings & environment
-│   │   │   └── rate_limit.py       # Rate limiting middleware
+│   │   │   ├── llm_client.py       # Multi-LLM routing + streaming + caching
+│   │   │   ├── retrieval.py        # PDF parsing, chunking, Qdrant vector storage & search
+│   │   │   ├── config.py           # Settings & environment (pydantic-settings)
+│   │   │   ├── auth.py             # JWT tokens, bcrypt password hashing, guest access
+│   │   │   ├── cache.py            # Redis cache (Upstash) for rate limiting & LLM responses
+│   │   │   ├── rate_limit.py       # Per-IP rate limiting via Redis
+│   │   │   └── logger.py           # Structured JSON logging (structlog)
 │   │   ├── personas/
-│   │   │   └── registry.py         # 6 persona configs & prompts
+│   │   │   └── registry.py         # 6 persona configs, prompts & temperature settings
 │   │   ├── routers/
-│   │   │   ├── chat.py             # Chat streaming endpoint
-│   │   │   └── upload.py           # File upload endpoint
+│   │   │   ├── chat.py             # Chat streaming endpoint (SSE)
+│   │   │   ├── upload.py           # File upload endpoint (PDF processing)
+│   │   │   └── auth.py             # Register, login & guest access endpoints
 │   │   └── models/
-│   │       └── schemas.py          # Pydantic models
+│   │       ├── schemas.py          # Pydantic models (request/response)
+│   │       └── database.py         # SQLAlchemy models (User, Document, ChatSession)
+│   ├── tests/
+│   │   ├── test_api.py             # API endpoint tests
+│   │   └── test_retrieval.py       # Chunking & retrieval tests
 │   ├── static/
 │   │   ├── index.html              # Frontend shell
-│   │   ├── css/
-│   │   │   └── styles.css          # Dark-theme styling
+│   │   ├── css/styles.css          # Dark-theme "Elite Terminal" styling
 │   │   └── js/
-│   │       ├── app.js              # Main app logic
-│   │       ├── api.js              # API client
-│   │       └── components/
-│   │           ├── chat.js         # Chat rendering
-│   │           ├── structured.js   # JSON card rendering
-│   │           └── upload.js       # File upload handler
+│   │       ├── app.js              # Main app logic & persona management
+│   │       ├── api.js              # API client with JWT auth
+│   │       └── components/         # Chat, structured output, upload components
 │   ├── requirements.txt            # Python dependencies
-│   └── .env.example                # Example env template
+│   └── .env.example                # Environment template (all required vars)
 ├── Dockerfile                      # Docker configuration
+├── render.yaml                     # Render deployment config
 └── README.md                       # This file
 ```
 
@@ -331,7 +383,7 @@ AI_COMMAND_CENTER/
 1. **Create system prompt** in `backend/app/personas/registry.py`
 2. **Define PersonaConfig** with ID, description, and output mode
 3. **Register in PERSONA_REGISTRY** dictionary
-4. **Set LLM provider** in `PERSONA_PROVIDER_MAP`
+4. **Set LLM provider** in `PERSONA_PROVIDER_MAP` (in `llm_client.py`)
 5. **Frontend updates automatically** from `/api/personas` endpoint
 
 ### Modify Streaming Behavior
@@ -356,19 +408,23 @@ All styling in `/backend/static/css/styles.css`:
 |-------|----------|
 | **Port 8080 already in use** | `python -m uvicorn app.main:app --port 8081` |
 | **API key errors** | Verify `.env` file has correct keys, restart server |
-| **PDF upload fails** | Check file size (PyPDF has limits), ensure PDF is not corrupted |
+| **PDF upload fails** | Check file size (10MB limit), ensure PDF is not corrupted |
 | **Streaming stops mid-response** | Check browser console for errors, verify API key quotas |
 | **CORS errors** | Ensure `CORS_ORIGINS` in `.env` includes your frontend URL |
+| **Database errors** | Ensure `DATABASE_URL` is set and Supabase is reachable |
+| **Rate limiting errors** | Ensure `REDIS_URL` is set and Upstash is reachable |
 
 ---
 
-## 📊 Performance Metrics
+## 🔐 Security Notes
 
-- ⚡ **Sub-100ms latency** for persona routing
-- 🔄 **Real-time streaming** — tokens appear as they're generated
-- 💾 **Memory efficient** — keyword-based chunking vs. vector databases
-- 🔁 **Automatic fallback** — <1s failover to Groq if primary provider fails
-- 📈 **Scales to 1000+ concurrent users** with async FastAPI architecture
+- ✅ **Semantic vector retrieval** — document answers are grounded via Qdrant embeddings, not hallucinated
+- ✅ **bcrypt password hashing** — user passwords are never stored in plaintext
+- ✅ **JWT authentication** — all API endpoints require valid tokens
+- ✅ **Guest access** — anonymous demo tokens with 4-hour expiry (no password required)
+- ✅ **Rate limiting** — Redis-backed per-IP limits, fails closed when Redis is down
+- ✅ **CORS configured** — restricts cross-origin requests
+- ⚠️ **API keys** — keep `.env` private, never commit to version control
 
 ---
 
@@ -388,16 +444,6 @@ All styling in `/backend/static/css/styles.css`:
 - 🐛 Catch bugs before code review
 - 📊 Analyze performance bottlenecks
 - 🏗️ Get architecture recommendations
-
----
-
-## 🔐 Security Notes
-
-- ✅ **No vector databases** — keyword-based retrieval is fully transparent
-- ✅ **No data persistence** — uploaded PDFs are processed in-memory
-- ✅ **Rate limiting** — built-in protection against abuse
-- ✅ **CORS configured** — restricts cross-origin requests
-- ⚠️ **API keys** — keep `.env` private, never commit to version control
 
 ---
 
@@ -430,7 +476,7 @@ Found a bug? Have an idea for a new persona?
 
 If you found this project useful, please star it on GitHub. It helps other developers discover this tool.
 
-**[⭐ Star on GitHub](https://github.com/Ysaibhanu99/AI_COMMAND_CENTER)**
+**[⭐ Star on GitHub](https://github.com/Ysaibhanu99/Klyvix)**
 
 ---
 
@@ -447,4 +493,4 @@ If you found this project useful, please star it on GitHub. It helps other devel
 
 **Built with ❤️ by Ysaibhanu99**
 
-*Last updated: July 2024*
+*Last updated: August 2026*

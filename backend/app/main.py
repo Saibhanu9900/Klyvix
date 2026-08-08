@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -8,25 +9,33 @@ from app.core.logger import logger
 from app.routers import chat, upload, auth
 from app.personas.registry import PERSONA_REGISTRY
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Modern lifespan handler — replaces deprecated @app.on_event."""
+    # Startup
+    from app.models.database import Base, engine
+    Base.metadata.create_all(bind=engine)
+    logger.info("application_started", version="1.0.0", host=settings.HOST, port=settings.PORT)
+    yield
+    # Shutdown
+    from app.core.cache import cache
+    await cache.close()
+    logger.info("application_stopped")
+
 app = FastAPI(
     title="Klyvix API",
     version="1.0.0",
-    description="Unified API powering 6 specialized AI personas with dual LLM streaming."
+    description="Unified API powering 6 specialized AI personas with dual LLM streaming.",
+    lifespan=lifespan
 )
 
-@app.on_event("startup")
-async def startup_event():
-    logger.info("application_started", version=app.version, host=settings.HOST, port=settings.PORT)
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("application_stopped")
-
-# CORS setup
+# CORS setup — allow_credentials=True with ["*"] is invalid per spec,
+# so we dynamically set credentials based on whether origins are explicit.
+is_wildcard_origins = settings.CORS_ORIGINS == ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=not is_wildcard_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

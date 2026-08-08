@@ -72,7 +72,22 @@ async def store_uploaded_document(filename: str, file_bytes: bytes) -> Dict[str,
     try:
         existing = db.query(Document).filter_by(file_hash=file_hash).first()
         if existing:
-            return {"file_id": str(existing.id), "filename": filename, "cached": True}
+            # Count existing chunks in Qdrant for this document
+            try:
+                chunk_count = qdrant.count(
+                    collection_name="document_chunks",
+                    count_filter={"must": [{"key": "doc_id", "match": {"value": str(existing.id)}}]},
+                    exact=True
+                ).count
+            except Exception:
+                chunk_count = 0
+            return {
+                "file_id": str(existing.id),
+                "filename": filename,
+                "total_chunks": chunk_count,
+                "word_count": existing.word_count or 0,
+                "cached": True
+            }
 
         chunks = chunk_text(text)
         embeddings = await get_embeddings(chunks) if chunks else []

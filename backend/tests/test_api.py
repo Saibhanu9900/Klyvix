@@ -23,7 +23,7 @@ def test_protected_upload_endpoint_unauthorized():
 
 def test_protected_upload_endpoint_authorized():
     # Create valid token
-    token = create_access_token(data={"sub": "test@example.com"})
+    token = create_access_token("test@example.com")
     headers = {"Authorization": f"Bearer {token}"}
     
     # Empty post with auth (should fail on missing file, not 401)

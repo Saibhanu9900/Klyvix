@@ -32,7 +32,9 @@ class RedisCache:
             return results[0]
         except Exception as e:
             logger.error("redis_increment_error", key=key, error=str(e))
-            return 0
+            # Fail-closed: block requests when Redis is unavailable
+            # rather than silently disabling rate limiting
+            raise
             
     async def close(self):
         await self.redis.close()

@@ -60,27 +60,45 @@ def prepare_gemini_messages(system_prompt: str, history: List[Dict[str, str]], u
     return contents, config
 
 async def stream_gemini(system_prompt: str, history: List[Dict[str, str]], user_message: str, temperature: float = 0.7, use_search: bool = False) -> AsyncGenerator[str, None]:
-    """Streams responses from Gemini 2.5 Flash asynchronously."""
+    """Streams responses from Gemini 2.5 Flash asynchronously.
+    
+    Uses a Queue + thread executor to avoid blocking the event loop during
+    sync iteration of the Gemini response stream.
+    """
     if not gemini_client:
         raise ValueError("GEMINI_API_KEY is missing.")
         
     contents, config = prepare_gemini_messages(system_prompt, history, user_message, temperature, use_search)
     
-    # Run sync streaming iterator in a thread executor to avoid blocking the asyncio event loop
+    queue: asyncio.Queue = asyncio.Queue()
+    _SENTINEL = object()
+    
+    def _iterate_stream():
+        """Runs in a thread — iterates the sync stream and pushes tokens to the queue."""
+        try:
+            response_stream = gemini_client.models.generate_content_stream(
+                model=settings.GEMINI_MODEL,
+                contents=contents,
+                config=config
+            )
+            for chunk in response_stream:
+                if chunk.text:
+                    asyncio.run_coroutine_threadsafe(queue.put(chunk.text), loop).result()
+        except Exception as e:
+            asyncio.run_coroutine_threadsafe(queue.put(e), loop).result()
+        finally:
+            asyncio.run_coroutine_threadsafe(queue.put(_SENTINEL), loop).result()
+    
     loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, _iterate_stream)
     
-    def get_stream():
-        return gemini_client.models.generate_content_stream(
-            model=settings.GEMINI_MODEL,
-            contents=contents,
-            config=config
-        )
-        
-    response_stream = await loop.run_in_executor(None, get_stream)
-    
-    for chunk in response_stream:
-        if chunk.text:
-            yield chunk.text
+    while True:
+        item = await queue.get()
+        if item is _SENTINEL:
+            break
+        if isinstance(item, Exception):
+            raise item
+        yield item
 
 # ─── Mistral / Codestral Streaming ───────────────────────────────────────────
 
@@ -114,7 +132,6 @@ async def stream_mistral(system_prompt: str, history: List[Dict[str, str]], user
             if data_str == "[DONE]":
                 break
             try:
-                import json
                 chunk = json.loads(data_str)
                 delta = chunk.get("choices", [{}])[0].get("delta", {}).get("content")
                 if delta:

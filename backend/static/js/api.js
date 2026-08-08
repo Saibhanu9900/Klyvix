@@ -10,12 +10,10 @@ const API = {
         let token = localStorage.getItem('jwt_token');
         if (token) return token;
         
-        // Auto-register a temporary user for testing Phase 1
-        const email = `test_${Math.random().toString(36).substring(7)}@example.com`;
-        const res = await fetch('/api/auth/register', {
+        // Request a guest token for anonymous demo access
+        const res = await fetch('/api/auth/guest', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: 'testpassword' })
+            headers: { 'Content-Type': 'application/json' }
         });
         
         if (res.ok) {

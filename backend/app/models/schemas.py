@@ -54,3 +54,4 @@ class DocumentUploadResponse(BaseModel):
     filename: str
     total_chunks: int
     word_count: int
+    cached: bool = False

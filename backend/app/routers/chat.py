@@ -50,13 +50,8 @@ async def chat_persona(persona_id: str, request: ChatRequest, req: Request):
             retrieved_chunks=retrieved_context,
             user_question=user_message
         )
-    elif persona_id == "research_assistant":
-        # Research Assistant uses Google Search grounding — no prompt placeholders needed
-        # If user uploaded docs, append context to the message
-        if retrieved_context and retrieved_context != "No document context available.":
-            user_message = f"{user_message}\n\n[Context from attached document(s):]\n{retrieved_context}"
     else:
-        # For all other personas (Study Mentor, Code/Resume Reviewer), append context dynamically
+        # For all other personas, append document context to the user message if available
         if retrieved_context and retrieved_context != "No document context available.":
             user_message = f"{user_message}\n\n[Context from attached document(s):]\n{retrieved_context}"
 
