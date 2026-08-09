@@ -157,6 +157,28 @@ const App = {
     },
 
     bindEvents() {
+        // Mobile Sidebar Toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        if (sidebarToggle && sidebar && sidebarOverlay) {
+            const toggleSidebar = () => {
+                sidebar.classList.toggle('open');
+                sidebarToggle.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            };
+            const closeSidebar = () => {
+                sidebar.classList.remove('open');
+                sidebarToggle.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            };
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            // Store closeSidebar so we can call it on persona select
+            this._closeSidebar = closeSidebar;
+        }
+
         // Sidebar Navigation
         const sidebarNav = document.getElementById('sidebarNav');
         if (sidebarNav) {
@@ -164,6 +186,8 @@ const App = {
                 const item = e.target.closest('.sidebar-item');
                 if (item && item.dataset.persona) {
                     this.selectPersona(item.dataset.persona);
+                    // Auto-close sidebar on mobile after selecting
+                    if (this._closeSidebar) this._closeSidebar();
                 }
             });
         }
