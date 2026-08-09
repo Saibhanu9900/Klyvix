@@ -1,7 +1,7 @@
 # 🎯 Klyvix
 
 <p align="center">
-  <img src="logo.png" alt="Klyvix Logo" width="200">
+  <img src="klyvix-logo.png" alt="Klyvix Logo" width="200">
 </p>
 
 > A **unified, high-performance platform** housing **6 specialized AI personas**, each engineered for specific academic and professional workflows. Powered by intelligent multi-LLM routing with real-time streaming.
