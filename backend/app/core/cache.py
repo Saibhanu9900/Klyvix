@@ -32,9 +32,10 @@ class RedisCache:
             return results[0]
         except Exception as e:
             logger.error("redis_increment_error", key=key, error=str(e))
-            # Fail-closed: block requests when Redis is unavailable
-            # rather than silently disabling rate limiting
-            raise
+            # Fail-open: allow the request through when Redis is unavailable
+            # (e.g. cold starts on serverless). A few unrate-limited requests
+            # are better than a total outage for a demo app.
+            return 1
             
     async def close(self):
         await self.redis.close()
