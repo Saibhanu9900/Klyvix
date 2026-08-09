@@ -45,9 +45,46 @@ app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(upload.router)
 
+from fastapi import Response
+
 @app.get("/api/health")
-def health_check():
-    return {"status": "ok", "service": "Klyvix Backend"}
+async def health_check(response: Response):
+    health_status = {"status": "ok", "service": "Klyvix Backend", "deps": {}}
+    
+    # 1. Check DB
+    from app.models.database import SessionLocal
+    from sqlalchemy import text
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        health_status["deps"]["database"] = "up"
+    except Exception:
+        health_status["deps"]["database"] = "down"
+        health_status["status"] = "degraded"
+        
+    # 2. Check Redis
+    from app.core.cache import cache
+    try:
+        await cache.redis.ping()
+        health_status["deps"]["redis"] = "up"
+    except Exception:
+        health_status["deps"]["redis"] = "down"
+        health_status["status"] = "degraded"
+        
+    # 3. Check Qdrant
+    from app.core.retrieval import qdrant
+    try:
+        qdrant.get_collections()
+        health_status["deps"]["qdrant"] = "up"
+    except Exception:
+        health_status["deps"]["qdrant"] = "down"
+        health_status["status"] = "degraded"
+        
+    if health_status["status"] != "ok":
+        response.status_code = 503
+        
+    return health_status
 
 @app.get("/api/personas")
 def list_personas():

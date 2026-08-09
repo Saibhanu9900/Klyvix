@@ -26,6 +26,18 @@ async def upload_document(files: List[UploadFile] = File(...)):
             if mime_type not in ALLOWED_MIME_TYPES:
                 raise HTTPException(status_code=400, detail=f"Invalid file type: {mime_type}")
                 
+            try:
+                import pypdf
+                import io
+                reader = pypdf.PdfReader(io.BytesIO(contents))
+                if reader.is_encrypted:
+                    raise HTTPException(status_code=400, detail=f"File {file.filename} is encrypted.")
+                _ = len(reader.pages)
+            except HTTPException:
+                raise
+            except Exception:
+                raise HTTPException(status_code=400, detail=f"Corrupted or invalid PDF {file.filename}.")
+                
             result = await store_uploaded_document(file.filename, contents)
             responses.append(DocumentUploadResponse(**result))
         except HTTPException:
