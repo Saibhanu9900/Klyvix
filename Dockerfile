@@ -13,11 +13,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8081
 
 # Environment variables
-ENV PORT=8080
+ENV PORT=8081
 ENV HOST=0.0.0.0
 
 # Command to run uvicorn server
-CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8081"]
