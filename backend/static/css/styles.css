@@ -1459,11 +1459,14 @@ pre {
     /* Main content takes full width */
     .main-content {
         width: 100%;
+        padding-top: 3.25rem;
     }
 
     /* Dashboard padding */
     #dashboardView.active {
-        padding: 1.25rem 0.75rem;
+        padding: 0.75rem;
+        align-items: flex-start;
+        justify-content: flex-start;
     }
 
     /* Table rows stack vertically */
