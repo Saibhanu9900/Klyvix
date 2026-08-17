@@ -6,7 +6,7 @@
 
 > A **unified, high-performance platform** housing **6 specialized AI personas**, each engineered for specific academic and professional workflows. Powered by intelligent multi-LLM routing with real-time streaming.
 
-🔴 **Live Demo**: [klyvix-177846015206.europe-west1.run.app](https://klyvix-177846015206.europe-west1.run.app/)
+🔴 **Live Demo**: [klyvix-177846015206.europe-west1.run.app](https://klyvix-177846015206.europe-west1.run.app/) &nbsp;|&nbsp; 📖 **Interactive API Docs**: [klyvix-177846015206.europe-west1.run.app/docs](https://klyvix-177846015206.europe-west1.run.app/docs)
 
 ---
 

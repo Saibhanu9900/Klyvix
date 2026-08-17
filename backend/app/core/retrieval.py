@@ -20,10 +20,13 @@ qdrant = QdrantClient(
 try:
     qdrant.get_collection("document_chunks")
 except Exception:
-    qdrant.create_collection(
-        collection_name="document_chunks",
-        vectors_config=VectorParams(size=768, distance=Distance.COSINE)
-    )
+    try:
+        qdrant.create_collection(
+            collection_name="document_chunks",
+            vectors_config=VectorParams(size=768, distance=Distance.COSINE)
+        )
+    except Exception:
+        pass
 
 def extract_text_from_file(filename: str, file_bytes: bytes) -> str:
     """Extracts text from a file, supporting PDF and plain text."""
